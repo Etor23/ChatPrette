@@ -1,18 +1,34 @@
 package main
 
 import (
-	"net/http"
+	"log"
 
 	"github.com/gin-gonic/gin"
+
+	"chat-back/internal/config"
+	"chat-back/internal/db"
 )
 
 func main() {
+
+	// Cargar configuración
+	cfg := config.Load()
+
+	// Conectar Mongo
+	mongoConn, err := db.NewMongo(cfg.MongoURI, cfg.MongoDB)
+	if err != nil {
+		log.Fatal("Mongo connection failed:", err)
+	}
+
+	log.Println("Mongo connected to:", mongoConn.Database.Name())
+
+	// Crear router
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+		c.JSON(200, gin.H{"message": "pong"})
 	})
 
-	// Cambia el puerto si quieres
-	r.Run(":8080")
+	// Iniciar servidor
+	r.Run(":" + cfg.Port)
 }
