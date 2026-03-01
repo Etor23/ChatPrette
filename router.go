@@ -15,16 +15,31 @@ func SetupRouter(db *mongo.Database) *gin.Engine {
 
 	// ===== Repos =====
 	userRepo := repos.NewUserRepo(db)
+	conversationRepo := repos.NewConversationRepo(db)
 
 	// ===== Handlers =====
 	userHandler := handlers.NewUserHandler(userRepo)
+	conversationHandler := handlers.NewConversationHandler(conversationRepo)
 
 	// ===== Routes =====
 	api := r.Group("/api")
 	{
+		//Users
 		api.GET("/users", userHandler.GetAllUsers)
 		api.GET("/users/get/:_id", userHandler.GetUserById)
 		api.POST("/users", userHandler.CreateUser)
+		api.PUT("/users/:_id", userHandler.UpdateUser)
+		api.DELETE("/users/:_id", userHandler.DeleteUser)
+		
+		//Conversations
+		api.GET("/conversations", conversationHandler.GetUserConversations)
+		api.GET("/conversations/get/:_id", conversationHandler.GetConversationById)
+		api.POST("/conversations/dm", conversationHandler.CreateDm)
+		api.POST("/conversations/group", conversationHandler.CreateGroup)
+		api.PATCH("/conversations/:_id/name", conversationHandler.UpdateGroupName)
+		api.PATCH("/conversations/:_id/members/add", conversationHandler.AddMember)
+		api.PATCH("/conversations/:_id/members/remove", conversationHandler.RemoveMember)
+		api.DELETE("/conversations/:_id", conversationHandler.DeleteConversation)
 	}
 
 	// Health check

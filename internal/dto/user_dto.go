@@ -6,6 +6,12 @@ type CreateUserRequest struct {
 	AvatarURL string `json:"avatar_url,omitempty"`
 }
 
+type UpdateUserRequest struct {
+	Email     string `json:"email" binding:"required,email"`
+	Username  string `json:"username" binding:"required"`
+	AvatarURL string `json:"avatar_url,omitempty"`
+}
+
 type UserResponse struct {
 	ID        string `json:"id"`
 	Email     string `json:"email"`
