@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	MongoURI string
-	MongoDB  string
-	Port     string
+	MongoURI            string
+	MongoDB             string
+	Port                string
+	FirebaseCredentials string
 }
 
 func Load() *Config {
@@ -20,8 +21,9 @@ func Load() *Config {
 	}
 
 	return &Config{
-		MongoURI: os.Getenv("MONGO_URI"),
-		MongoDB:  os.Getenv("MONGO_DB"),
-		Port:     os.Getenv("PORT"),
+		MongoURI:            os.Getenv("MONGO_URI"),
+		MongoDB:             os.Getenv("MONGO_DB"),
+		Port:                os.Getenv("PORT"),
+		FirebaseCredentials: os.Getenv("FIREBASE_CREDENTIALS"), // path al json
 	}
 }
