@@ -40,7 +40,7 @@ func SetupRouter(db *mongo.Database, fbClient *firebase.FirebaseClient) *gin.Eng
 		api.POST("/users", userHandler.CreateUser)
 		api.PUT("/users/:_id", userHandler.UpdateUser)
 		api.DELETE("/users/:_id", userHandler.DeleteUser)
-		
+
 		//Conversations
 		api.GET("/conversations", conversationHandler.GetUserConversations)
 		api.GET("/conversations/get/:_id", conversationHandler.GetConversationById)

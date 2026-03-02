@@ -18,7 +18,7 @@ func NewUserRepo(db *mongo.Database) *UserRepo {
 	}
 }
 
-func (r *UserRepo) Create(ctx context.Context, user *models.User) error{
+func (r *UserRepo) Create(ctx context.Context, user *models.User) error {
 	_, err := r.collection.InsertOne(ctx, user)
 	return err
 }
@@ -54,6 +54,7 @@ func (r *UserRepo) Update(ctx context.Context, id string, user *models.User) err
 			"email":      user.Email,
 			"username":   user.Username,
 			"avatar_url": user.AvatarURL,
+			"birth_date": user.BirthDate,
 			"updated_at": user.UpdatedAt,
 		},
 	}

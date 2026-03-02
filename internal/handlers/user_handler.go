@@ -28,16 +28,24 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
+	// Parse birth date
+	birthDate, err := time.Parse("2006-01-02", body.BirthDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de fecha inválido, use YYYY-MM-DD"})
+		return
+	}
+
 	user := models.User{
 		//ID:        body.ID,
 		Email:     body.Email,
 		Username:  body.Username,
 		AvatarURL: body.AvatarURL,
+		BirthDate: birthDate,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
-	err := h.repo.Create(c.Request.Context(), &user)
+	err = h.repo.Create(c.Request.Context(), &user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo crear el usuario"})
 		return
@@ -47,6 +55,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		Email:     user.Email,
 		Username:  user.Username,
 		AvatarURL: user.AvatarURL,
+		BirthDate: user.BirthDate.Format("2006-01-02"),
 	}
 	c.JSON(http.StatusCreated, response)
 }
@@ -65,6 +74,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 			Email:     user.Email,
 			Username:  user.Username,
 			AvatarURL: user.AvatarURL,
+			BirthDate: user.BirthDate.Format("2006-01-02"),
 		})
 	}
 
@@ -85,6 +95,7 @@ func (h *UserHandler) GetUserById(c *gin.Context) {
 		Email:     user.Email,
 		Username:  user.Username,
 		AvatarURL: user.AvatarURL,
+		BirthDate: user.BirthDate.Format("2006-01-02"),
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -98,14 +109,22 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// Parse birth date
+	birthDate, err := time.Parse("2006-01-02", body.BirthDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de fecha inválido, use YYYY-MM-DD"})
+		return
+	}
+
 	user := models.User{
 		Email:     body.Email,
 		Username:  body.Username,
 		AvatarURL: body.AvatarURL,
+		BirthDate: birthDate,
 		UpdatedAt: time.Now(),
 	}
 
-	err := h.repo.Update(c.Request.Context(), id, &user)
+	err = h.repo.Update(c.Request.Context(), id, &user)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Usuario no encontrado"})
 		return
@@ -123,6 +142,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		Email:     updatedUser.Email,
 		Username:  updatedUser.Username,
 		AvatarURL: updatedUser.AvatarURL,
+		BirthDate: updatedUser.BirthDate.Format("2006-01-02"),
 	}
 	c.JSON(http.StatusOK, response)
 }
