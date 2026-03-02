@@ -56,10 +56,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		// Primera vez → crear usuario
 		isNew = true
 		user = &models.User{
-			ID:        primitive.NewObjectID(),
+			ID:        primitive.NewObjectID().Hex(),
 			Email:     email,
 			Username:  name,
 			AvatarURL: picture,
+			BirthDate: time.Time{}, // El usuario lo actualiza después
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		}
@@ -74,10 +75,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.AuthResponse{
 		User: dto.UserResponse{
-			ID:        user.ID.Hex(),
+			ID:        user.ID,
 			Email:     user.Email,
 			Username:  user.Username,
 			AvatarURL: user.AvatarURL,
+			BirthDate: user.BirthDate.Format("2006-01-02"),
 		},
 		IsNew: isNew,
 	})
@@ -94,9 +96,10 @@ func (h *AuthHandler) Me(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.UserResponse{
-		ID:        user.ID.Hex(),
+		ID:        user.ID,
 		Email:     user.Email,
 		Username:  user.Username,
 		AvatarURL: user.AvatarURL,
+		BirthDate: user.BirthDate.Format("2006-01-02"),
 	})
 }

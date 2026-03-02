@@ -32,6 +32,15 @@ func (r *UserRepo) FindById(ctx context.Context, id string) (*models.User, error
 	return &user, nil
 }
 
+func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
+	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *UserRepo) FindAll(ctx context.Context) ([]models.User, error) {
 	cursor, err := r.collection.Find(ctx, bson.M{})
 	if err != nil {
