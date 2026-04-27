@@ -1,3 +1,4 @@
+// internal/repos/user_repo.go
 package repos
 
 import (
@@ -19,10 +20,11 @@ func NewUserRepo(db *mongo.Database) *UserRepo {
 	}
 }
 
-func (r *UserRepo) Create(ctx context.Context, user *models.User) error{
+// ========== Métodos que ya tenía tu compañero ==========
+
+func (r *UserRepo) Create(ctx context.Context, user *models.User) error {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
-
 	_, err := r.collection.InsertOne(ctx, user)
 	return err
 }
@@ -58,4 +60,42 @@ func (r *UserRepo) FindAll(ctx context.Context) ([]models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// ========== Métodos nuevos para Auth ==========
+
+func (r *UserRepo) FindByFirebaseUID(ctx context.Context, uid string) (*models.User, error) {
+	var user models.User
+	err := r.collection.FindOne(ctx, bson.M{"firebase_uid": uid}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepo) ExistsByFirebaseUID(ctx context.Context, uid string) (bool, error) {
+	count, err := r.collection.CountDocuments(ctx, bson.M{"firebase_uid": uid})
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (r *UserRepo) ExistsByUsername(ctx context.Context, username string) (bool, error) {
+	count, err := r.collection.CountDocuments(ctx, bson.M{"username": username})
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (r *UserRepo) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	count, err := r.collection.CountDocuments(ctx, bson.M{"email": email})
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

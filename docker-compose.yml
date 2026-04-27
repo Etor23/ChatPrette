@@ -1,0 +1,27 @@
+
+services:
+
+  mongodb:
+    image: mongo:7
+    container_name: chat_app_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: chat_app_mongo_ui
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
