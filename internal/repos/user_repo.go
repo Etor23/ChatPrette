@@ -4,9 +4,11 @@ package repos
 import (
 	"chat-back/internal/models"
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -39,8 +41,14 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*models.User,
 }
 
 func (r *UserRepo) FindById(ctx context.Context, id string) (*models.User, error) {
+	// Convertir el string a ObjectID
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("ID inválido: %w", err)
+	}
+
 	var user models.User
-	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
+	err = r.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}

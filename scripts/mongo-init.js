@@ -1,6 +1,12 @@
 
 db = db.getSiblingDB('chat_app');
 
+db.users.createIndex(
+  { "firebase_uid": 1 },
+  { unique: true }
+);
+
+
 // ==================== COLECCIONES ====================
 db.createCollection('users');
 db.createCollection('conversations');
@@ -34,12 +40,14 @@ db.messages.createIndex(
 
 // ==================== DATOS DE PRUEBA (opcional) ====================
 db.users.insertOne({
-  _id: "test_firebase_uid_123",
+  _id: ObjectId(),
+  firebase_uid: "test_firebase_uid_123",
   email: "test@mail.com",
   username: "testuser",
   displayName: "Test User",
   avatarUrl: null,
-  createdAt: new Date()
+  createdAt: new Date(),
+  updatedAt: new Date()
 });
 
 print('');
