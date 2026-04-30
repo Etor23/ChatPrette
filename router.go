@@ -7,12 +7,12 @@ import (
 	"chat-back/internal/auth"
 	"chat-back/internal/handlers"
 	"chat-back/internal/repos"
+	"chat-back/internal/ws"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func SetupRouter(db *mongo.Database, firebaseAuth *auth.FirebaseProvider) *gin.Engine {
-
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -22,37 +22,40 @@ func SetupRouter(db *mongo.Database, firebaseAuth *auth.FirebaseProvider) *gin.E
 		AllowCredentials: true,
 	}))
 
+	// ===== WebSocket Hub =====
+	hub := ws.NewHub()
+	go hub.Run()
+
 	// ===== Repos =====
 	userRepo := repos.NewUserRepo(db)
 
 	// ===== Handlers =====
 	userHandler := handlers.NewUserHandler(userRepo)
-	authHandler := handlers.NewAuthHandler(userRepo) // ← NUEVO
+	authHandler := handlers.NewAuthHandler(userRepo)
 
 	// ===== Routes =====
 	api := r.Group("/api")
 	{
 		// --- Auth (requieren token de Firebase) ---
 		authRoutes := api.Group("/auth")
-		authRoutes.Use(auth.Middleware(firebaseAuth)) //  Middleware protege estas rutas
+		authRoutes.Use(auth.Middleware(firebaseAuth))
 		{
 			authRoutes.POST("/register", authHandler.Register)
 			authRoutes.POST("/login", authHandler.Login)
 			authRoutes.GET("/me", authHandler.GetMe)
 		}
 
-		// --- Users (públicas por ahora, luego pueden protegerlas) ---
-		api.GET("/users", userHandler.GetAllUsers)
-		api.GET("/users/get/:_id", userHandler.GetUserById)
-		api.POST("/users", userHandler.CreateUser)
+		// --- Users (protegidas con auth) ---
+		usersRoutes := api.Group("/users")
+		usersRoutes.Use(auth.Middleware(firebaseAuth))
+		{
+			usersRoutes.GET("/", userHandler.GetAllUsers)
+			usersRoutes.GET("/:_id", userHandler.GetUserById)
+			// POST /users ELIMINADO — el registro se hace por /auth/register
+		}
 
-		// Si quieren proteger las rutas de users también:
-		// usersRoutes := api.Group("/users")
-		// usersRoutes.Use(auth.Middleware(firebaseAuth))
-		// {
-		//     usersRoutes.GET("/", userHandler.GetAllUsers)
-		//     usersRoutes.GET("/:_id", userHandler.GetUserById)
-		// }
+		// --- WebSocket (protegido con auth) ---
+		api.GET("/ws", auth.Middleware(firebaseAuth), ws.ServeWS(hub))
 	}
 
 	// Health check

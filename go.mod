@@ -4,6 +4,8 @@ go 1.25.0
 
 require go.mongodb.org/mongo-driver v1.17.9
 
+require github.com/gorilla/websocket v1.5.3 // indirect
+
 require (
 	cel.dev/expr v0.25.1 // indirect
 	cloud.google.com/go v0.123.0 // indirect
