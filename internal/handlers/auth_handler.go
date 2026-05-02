@@ -10,6 +10,7 @@ import (
 	"chat-back/internal/dto"
 	"chat-back/internal/models"
 	"chat-back/internal/repos"
+	"chat-back/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -115,11 +116,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// 7. Format birthdate and createdAt for response
-	var birthStr string
-	if user.Birthdate != nil {
-		birthStr = user.Birthdate.Format(time.RFC3339)
-	}
-	createdStr := user.CreatedAt.Format(time.RFC3339)
+	birthStr := utils.FormatDateOrEmpty(user.Birthdate)
+	createdStr := utils.FormatTime(user.CreatedAt)
 
 	// 8. Responder
 	c.JSON(http.StatusCreated, dto.LoginResponse{
@@ -180,11 +178,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// 6. Format birthdate and createdAt for response
-	var birthStr string
-	if user.Birthdate != nil {
-		birthStr = user.Birthdate.Format(time.RFC3339)
-	}
-	createdStr := user.CreatedAt.Format(time.RFC3339)
+	birthStr := utils.FormatDateOrEmpty(user.Birthdate)
+	createdStr := utils.FormatTime(user.CreatedAt)
 
 	// 7. Responder
 	c.JSON(http.StatusOK, dto.LoginResponse{
@@ -220,12 +215,8 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 	}
 
 	// Format birthdate and createdAt as ISO strings
-	var birthStr string
-	if user.Birthdate != nil {
-		birthStr = user.Birthdate.Format(time.RFC3339)
-	}
-
-	createdStr := user.CreatedAt.Format(time.RFC3339)
+	birthStr := utils.FormatDateOrEmpty(user.Birthdate)
+	createdStr := utils.FormatTime(user.CreatedAt)
 
 	c.JSON(http.StatusOK, dto.UserResponse{
 		ID:        user.ID.Hex(),
@@ -309,11 +300,8 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 	}
 
 	// 5. Formatear respuesta
-	var birthStr string
-	if user.Birthdate != nil {
-		birthStr = user.Birthdate.Format(time.RFC3339)
-	}
-	createdStr := user.CreatedAt.Format(time.RFC3339)
+	birthStr := utils.FormatDateOrEmpty(user.Birthdate)
+	createdStr := utils.FormatTime(user.CreatedAt)
 
 	c.JSON(http.StatusOK, dto.UserResponse{
 		ID:        user.ID.Hex(),

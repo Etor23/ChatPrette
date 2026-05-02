@@ -3,6 +3,7 @@ package handlers
 import (
 	"chat-back/internal/dto"
 	"chat-back/internal/repos"
+	"chat-back/internal/utils"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,11 +56,12 @@ func (h *UserHandler) GetUserById(c *gin.Context) {
 		Email:     user.Email,
 		Username:  user.Username,
 		AvatarURL: user.AvatarURL,
+		Birthdate: utils.FormatDateOrEmpty(user.Birthdate),
+		CreatedAt: utils.FormatTime(user.CreatedAt),
 	}
 
 	c.JSON(http.StatusOK, response)
 }
-
 
 // GET /api/users/search?q=...&limit=...
 func (h *UserHandler) SearchUsers(c *gin.Context) {
@@ -100,6 +102,7 @@ func (h *UserHandler) SearchUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
 // CreateUser y GetUserByEmail ELIMINADOS:
 // - CreateUser era un agujero de seguridad (sin auth, sin firebase_uid)
 // - GetUserByEmail no estaba registrado en ninguna ruta

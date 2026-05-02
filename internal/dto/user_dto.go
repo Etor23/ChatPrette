@@ -17,7 +17,7 @@ type UserResponse struct {
 
 // UpdateProfileRequest para cambiar username o birthdate
 type UpdateProfileRequest struct {
-Username  string `json:"username,omitempty"`  // opcional
-Birthdate string `json:"birthdate,omitempty"` // opcional
-AvatarURL string `json:"avatar_url,omitempty"` // opcional
+	Username  string `json:"username,omitempty"`   // opcional
+	Birthdate string `json:"birthdate,omitempty"`  // opcional
+	AvatarURL string `json:"avatar_url,omitempty"` // opcional
 }
