@@ -59,6 +59,7 @@ func SetupRouter(db *mongo.Database, jwtManager *auth.JWTManager) *gin.Engine {
 		usersRoutes.Use(auth.Middleware(jwtManager))
 		{
 			usersRoutes.GET("/", userHandler.GetAllUsers)
+			usersRoutes.GET("/search", userHandler.SearchUsers)
 			usersRoutes.GET("/:_id", userHandler.GetUserById)
 			// POST /users ELIMINADO — el registro se hace por /auth/register
 		}

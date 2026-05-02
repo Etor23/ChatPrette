@@ -5,6 +5,7 @@ import (
 	"chat-back/internal/models"
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -42,6 +43,42 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*models.User,
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepo) FindByUsername(ctx context.Context, username string) (*models.User, error) {
+	var user models.User
+	err := r.collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepo) SearchByUsername(ctx context.Context, query string, limit int64) ([]models.User, error) {
+	pattern := "^" + regexp.QuoteMeta(query)
+
+	filter := bson.M{
+		"username": bson.M{
+			"$regex":   pattern,
+			"$options": "i",
+		},
+	}
+	findOptions := options.Find().SetLimit(limit).SetSort(bson.D{{Key: "username", Value: 1}})
+	cursor, err := r.collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	err = cursor.All(ctx, &users)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (r *UserRepo) FindById(ctx context.Context, id string) (*models.User, error) {
