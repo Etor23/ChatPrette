@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"time"
 
 	"chat-back/internal/auth"
 	"chat-back/internal/config"
@@ -18,14 +20,14 @@ func main() {
 		log.Fatal(" Error conectando a MongoDB:", err)
 	}
 
-	// Firebase                                      ← NUEVO
-	firebaseAuth, err := auth.NewFirebaseProvider(cfg.FirebaseCredentials)
-	if err != nil {
-		log.Fatal(" Error inicializando Firebase:", err)
+	secretKey := os.Getenv("JWT_SECRET_KEY")
+	if secretKey == "" {
+		secretKey = "your-secret-key-change-in-production"
 	}
+	jwtManager := auth.NewJWTManager(secretKey, 24*time.Hour)
 
-	// Router (ahora recibe Firebase también)        ← MODIFICADO
-	r := SetupRouter(mongoConn.Database, firebaseAuth)
+	// Router recibe el manager JWT compartido
+	r := SetupRouter(mongoConn.Database, jwtManager)
 
 	log.Printf(" Servidor corriendo en http://localhost:%s\n", cfg.Port)
 	r.Run(":" + cfg.Port)
