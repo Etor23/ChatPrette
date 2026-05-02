@@ -23,14 +23,13 @@ func main() {
 		log.Fatal("Error conectando a MongoDB:", err)
 	}
 
-	// Firebase
-	firebaseAuth, err := auth.NewFirebaseProvider(cfg.FirebaseCredentials)
-	if err != nil {
-		log.Fatal("Error inicializando Firebase:", err)
+	secretKey := os.Getenv("JWT_SECRET_KEY")
+	if secretKey == "" {
+		secretKey = "your-secret-key-change-in-production"
 	}
+	jwtManager := auth.NewJWTManager(secretKey, 24*time.Hour)
 
-	// Router
-	r := SetupRouter(mongoConn.Database, firebaseAuth)
+	r := SetupRouter(mongoConn.Database, jwtManager)
 
 	// Crear servidor HTTP manualmente para poder hacer shutdown graceful
 	srv := &http.Server{

@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupRouter(db *mongo.Database, firebaseAuth *auth.FirebaseProvider) *gin.Engine {
+func SetupRouter(db *mongo.Database, jwtManager *auth.JWTManager) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -31,23 +31,32 @@ func SetupRouter(db *mongo.Database, firebaseAuth *auth.FirebaseProvider) *gin.E
 
 	// ===== Handlers =====
 	userHandler := handlers.NewUserHandler(userRepo)
-	authHandler := handlers.NewAuthHandler(userRepo)
+	authHandler := handlers.NewAuthHandler(userRepo, jwtManager)
 
 	// ===== Routes =====
 	api := r.Group("/api")
 	{
-		// --- Auth (requieren token de Firebase) ---
+		// --- Auth (públicos: register, login) ---
 		authRoutes := api.Group("/auth")
-		authRoutes.Use(auth.Middleware(firebaseAuth))
 		{
+			// SIN autenticación
 			authRoutes.POST("/register", authHandler.Register)
 			authRoutes.POST("/login", authHandler.Login)
-			authRoutes.GET("/me", authHandler.GetMe)
+
+			// CON autenticación (middleware)
+			protectedAuth := authRoutes.Group("")
+			protectedAuth.Use(auth.Middleware(jwtManager))
+			{
+				protectedAuth.GET("/me", authHandler.GetMe)
+				protectedAuth.PUT("/me", authHandler.UpdateProfile)
+				protectedAuth.POST("/logout", authHandler.Logout)
+				protectedAuth.POST("/refresh", authHandler.Refresh)
+			}
 		}
 
 		// --- Users (protegidas con auth) ---
 		usersRoutes := api.Group("/users")
-		usersRoutes.Use(auth.Middleware(firebaseAuth))
+		usersRoutes.Use(auth.Middleware(jwtManager))
 		{
 			usersRoutes.GET("/", userHandler.GetAllUsers)
 			usersRoutes.GET("/:_id", userHandler.GetUserById)
@@ -55,7 +64,7 @@ func SetupRouter(db *mongo.Database, firebaseAuth *auth.FirebaseProvider) *gin.E
 		}
 
 		// --- WebSocket (protegido con auth) ---
-		api.GET("/ws", auth.Middleware(firebaseAuth), ws.ServeWS(hub))
+		api.GET("/ws", auth.Middleware(jwtManager), ws.ServeWS(hub))
 	}
 
 	// Health check

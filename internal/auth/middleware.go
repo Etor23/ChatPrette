@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	ContextFirebaseUID = "firebase_uid"
-	ContextEmail       = "email"
+	ContextUserID   = "user_id"
+	ContextEmail    = "email"
+	ContextUsername = "username"
 )
 
-// Middleware verifica el token de Firebase en cada request
-func Middleware(provider *FirebaseProvider) gin.HandlerFunc {
+// Middleware verifica el JWT propio del backend en cada request
+func Middleware(manager *JWTManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// 1. Obtener header
@@ -34,8 +35,8 @@ func Middleware(provider *FirebaseProvider) gin.HandlerFunc {
 			return
 		}
 
-		// 3. Verificar con Firebase
-		tokenInfo, err := provider.VerifyToken(c.Request.Context(), parts[1])
+		// 3. Verificar JWT
+		claims, err := manager.VerifyToken(parts[1])
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Token inválido o expirado",
@@ -44,20 +45,40 @@ func Middleware(provider *FirebaseProvider) gin.HandlerFunc {
 		}
 
 		// 4. Guardar en contexto para que los handlers lo usen
-		c.Set(ContextFirebaseUID, tokenInfo.UID)
-		c.Set(ContextEmail, tokenInfo.Email)
+		c.Set(ContextUserID, claims.UID)
+		c.Set(ContextEmail, claims.Email)
+		c.Set(ContextUsername, claims.Username)
 
 		c.Next()
 	}
 }
 
 // Helpers para extraer datos del contexto en los handlers
-func GetFirebaseUID(c *gin.Context) string {
-	uid, _ := c.Get(ContextFirebaseUID)
+func GetUserID(c *gin.Context) string {
+	uid, _ := c.Get(ContextUserID)
+	if uid == nil {
+		return ""
+	}
 	return uid.(string)
 }
 
 func GetEmail(c *gin.Context) string {
 	email, _ := c.Get(ContextEmail)
+	if email == nil {
+		return ""
+	}
 	return email.(string)
+}
+
+func GetUsername(c *gin.Context) string {
+	username, _ := c.Get(ContextUsername)
+	if username == nil {
+		return ""
+	}
+	return username.(string)
+}
+
+// Backward compatible alias
+func GetFirebaseUID(c *gin.Context) string {
+	return GetUserID(c)
 }
